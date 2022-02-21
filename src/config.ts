@@ -1,7 +1,21 @@
 import 'dotenv/config'
 
-const config = {
-    passwordWallet: process.env.PASS_WALLET || ''
+type ConfigApp = {
+    passwordWallet: string;
+    browser: string;
+    keplrExtension: {
+        id: string;
+        version: string;
+    }
 }
 
-export { config }
+const config: ConfigApp = {
+    passwordWallet: process.env.PASS_WALLET || '',
+    browser: process.env.BROWSER || '',
+    keplrExtension: {
+        id: process.env.EXTENSION_ID || '',
+        version: process.env.EXTENSION_VERSION || ''
+    }
+}
+
+export { config, ConfigApp }
