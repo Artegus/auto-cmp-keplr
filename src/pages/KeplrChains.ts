@@ -4,53 +4,63 @@ import { Chain } from "../models/Chain";
 class KeplrChains {
 
     private page: Page;
-    private url: string = "https://wallet.keplr.app/#/";
 
     private chains: Chain[] | undefined;
-    private favoriteChains: Chain[] | undefined;
-    private otherChains: Chain[] | undefined;
 
     private readonly ALL_CHAINS = "ul.navbar-nav:first-child > li.nav-item > div > ul";
-    private readonly STAKE_SECTION = "div > ul > li:first-child > a";
+    private readonly GROUP_CHAINS = "li > div > ul > li:first-child > a:not(.chain-item)";
+
+    private readonly ALL_CHAINS_LINKS = "ul.navbar-nav:first-child > li.nav-item > div > ul > li > div > ul > li:first-child > a";
 
     constructor(page: Page) {
         this.page = page;
     }
 
-    public async startNavigation() {
-        await this.goTo();
-
+    public setChains(...chains: Chain[]): void {
+        this.chains = chains;
     }
 
-    private async goTo(): Promise<void> {
-        await this.page.goto(this.url);
-        await this.page.waitForNavigation({
-            waitUntil: 'networkidle0'
-        })
+    public getFavoriteChains(): Chain[] {
+        if (this.chains) {
+            return this.chains.filter(chain => chain.isFavorite());
+        }
+        return [];
     }
 
-    async getAllChains(): Promise<void> {
-
-        const chains: ElementHandle<HTMLUListElement>[] = await this.page.$$<HTMLUListElement>(this.ALL_CHAINS);
-
-        const favoriteChains = await chains[0].evaluate(() =>
-            Array.from(document.querySelectorAll('li')).map(e => {
-                const stakeSection = e.querySelectorAll<HTMLLinkElement>(this.STAKE_SECTION)[0];
-                return stakeSection.href;
-            })
-        );
-
-        const otherChains = await chains[1].evaluate(() =>
-            Array.from(document.querySelectorAll('li')).map(e => {
-                const stakeSection = e.querySelectorAll<HTMLLinkElement>(this.STAKE_SECTION)[0];
-                return stakeSection.href;
-            })
-        );
-
-        console.log(favoriteChains);
-
+    public getOtherChains(): Chain[] {
+        if (this.chains) {
+            return this.chains.filter(chain => !chain.isFavorite());
+        }
+        return [];
     }
 
+    public async startScrape(): Promise<void> {
+        await this.getAllChains();
+    }
+
+    private async getAllChains(): Promise<void> {
+
+        const chainGroup = await this.page.$$<HTMLUListElement>(this.ALL_CHAINS);
+
+        const favoriteChains = await chainGroup[0].$$<HTMLLinkElement>(this.GROUP_CHAINS);
+        const otherChains = await chainGroup[1].$$<HTMLLinkElement>(this.GROUP_CHAINS);
+
+        const favChainsParsed = await this.parseChains(favoriteChains, true);
+        const othChainsParsed = await this.parseChains(otherChains, false);
+
+        this.setChains(...favChainsParsed, ...othChainsParsed);
+    }
+
+    private async parseChains(nodeElements: ElementHandle<HTMLLinkElement>[], favorite: boolean): Promise<Chain[]> {
+        const chains: Chain[] = []; 
+        
+        for(const nodeElement of nodeElements) {
+            const href = await this.page.evaluate((link: HTMLLinkElement) => link.href, nodeElement);
+            chains.push(new Chain(href, favorite))
+        }
+
+        return chains;
+    }
 
 }
 

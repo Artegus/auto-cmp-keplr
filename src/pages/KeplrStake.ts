@@ -1,9 +1,10 @@
 import { Page } from "puppeteer-core";
+import { KeplrChains } from "./KeplrChains";
 
 class KeplrStake {
 
     private page: Page;
-    private url: string = "https://wallet.keplr.app/#/cosmoshub/stake";
+    private url: string = "https://wallet.keplr.app/#/";
 
     constructor(page: Page) {
         this.page = page;
@@ -14,12 +15,15 @@ class KeplrStake {
     }
 
     private async goTo(): Promise<void> {
-        await this.page.goto(this.url);
-        await this.page.waitForNavigation({
-            waitUntil: 'networkidle0'
-        })
+        await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForTimeout(4000);
     }
 
+    public async retrieveChains(): Promise<KeplrChains> {
+        const keplrChains = new KeplrChains(this.page);
+        await keplrChains.startScrape();
+        return keplrChains;
+    }
 
 }
 
