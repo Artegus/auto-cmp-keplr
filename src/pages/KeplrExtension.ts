@@ -43,13 +43,11 @@ class KeplrExtension {
     private async unlockWallet(): Promise<void> {
         await this.page.waitForSelector(this.UNLOCK_BUTTON);
         await this.page.click(this.UNLOCK_BUTTON)
-        console.log('awaiting navigation')
         await this.page.waitForNavigation({
             waitUntil: 'networkidle0'
         })
-        console.log('--');
         await this.page.waitForSelector('.popper');
-        await this.page.waitForTimeout(5000);
+        await this.page.waitForTimeout(2000);
     }
 
 }
