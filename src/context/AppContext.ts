@@ -12,6 +12,7 @@ class AppContext extends Context {
         super();
         this.homeDir = FileSystemUtils.getHomeDir();
         this.os = FileSystemUtils.getOsPlatform();
+        this.loadConfig();
     }
 
     public getOs() {
@@ -40,8 +41,13 @@ class AppContext extends Context {
         this.setObject(AppContextStoreKeys.dataDir, defaultDataDir);
     }
 
-    public async loadConfig(): Promise<void> {
+    private setExecutablePath(): void {
+        this.setObject(AppContextStoreKeys.executablePath, config.executablePath);
+    }
+
+    private loadConfig(): void {
         this.setDefaultUserDataDir();
+        this.setExecutablePath();
     }
 
 }

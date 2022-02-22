@@ -3,6 +3,7 @@ import { config } from '../config';
 import { AppContext } from "../context/AppContext";
 import { CommandUtil } from "../utils/CommandUtils";
 import { Command } from "../models/Command";
+import { AppContextStoreKeys } from "../context/AppContextStoreKeys";
 
 type KeplrPaths = {
     extension: string;
@@ -59,7 +60,7 @@ class KeplrConfig {
     }
     
     private getExtensionsPath() {
-        const dataDir: string = this.appContext.getObject<string>('dataDir')!;
+        const dataDir: string = this.appContext.getObject<string>(AppContextStoreKeys.dataDir)!;
         const extensionsPath = FileSystemUtils.createPath(dataDir, "Default", "Extensions");
         return extensionsPath;
     }

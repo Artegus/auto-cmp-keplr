@@ -1,5 +1,6 @@
 enum AppContextStoreKeys {
-    dataDir = "dataDir"
+    dataDir = "dataDir",
+    executablePath = "executablePath"
 }
 
 export { AppContextStoreKeys }

@@ -1,3 +1,5 @@
+import { AppContextStoreKeys } from "./AppContextStoreKeys";
+
 class Context {
 
     private store: Map<string, Object>;
@@ -10,7 +12,7 @@ class Context {
         return this.store;
     }
 
-    public getObject<T>(key: string): T | undefined {
+    public getObject<T>(key: AppContextStoreKeys): T | undefined {
         try {
             return this.store.get(key) as T;
         } catch (e) {
