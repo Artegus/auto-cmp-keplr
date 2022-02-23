@@ -10,7 +10,7 @@ async function closeBrowser(browser: Browser) {
 
     if (pages.length > 1) {
         for (const page of pages) {
-            page.close();
+            await page.close();
         }
     } else {
         browser.close();
@@ -21,7 +21,6 @@ async function closeBrowser(browser: Browser) {
 async function main() {
 
     const ctx = new AppContext();
-    await ctx.loadConfig();
 
     const keplrConfig = new KeplrConfig(ctx);
     await keplrConfig.loadKeplrExtensionPath();
@@ -32,8 +31,8 @@ async function main() {
             `--disable-extensions-except=${keplrConfig.getKeplrPath()}`,
             `--load-extension=${keplrConfig.getKeplrPath()}`,
         ],
-        executablePath: '/usr/bin/chromium',
-        userDataDir: ctx.getObject(AppContextStoreKeys.dataDir)
+        executablePath: ctx.getObject<string>(AppContextStoreKeys.executablePath),
+        userDataDir: ctx.getObject<string>(AppContextStoreKeys.dataDir)
     });
 
     const page = await browser.newPage();
@@ -45,6 +44,7 @@ async function main() {
     const keplrStakePage = new KeplrStake(page);
 
     await keplrStakePage.startNavigation();
+    const keplrChains = await keplrStakePage.retrieveChains();
 
     await closeBrowser(browser);
 
