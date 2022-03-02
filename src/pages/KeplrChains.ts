@@ -33,6 +33,13 @@ class KeplrChains {
         }
         return [];
     }
+    
+    public getChains(): Chain[] {
+        if (this.chains != undefined) {
+            return this.chains;
+        }
+        return [];
+    }
 
     public async startScrape(): Promise<void> {
         await this.getAllChains();
