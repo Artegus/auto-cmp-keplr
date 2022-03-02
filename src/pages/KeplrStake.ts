@@ -1,4 +1,5 @@
 import { Page } from "puppeteer-core";
+import { Chain } from "../models/Chain";
 import { KeplrChains } from "./KeplrChains";
 
 class KeplrStake {
@@ -19,10 +20,10 @@ class KeplrStake {
         await this.page.waitForTimeout(4000);
     }
 
-    public async retrieveChains(): Promise<KeplrChains> {
+    public async retrieveChains(): Promise<Chain[]> {
         const keplrChains = new KeplrChains(this.page);
         await keplrChains.startScrape();
-        return keplrChains;
+        return keplrChains.getChains();
     }
 
 }
