@@ -21,8 +21,7 @@ class ClaimRewards {
         await this.goTo();
         await this.retrieveRewardValue();
         if (this.isRewardAvailable()) {
-            const statusOk = await this.claimReward();    
-            return statusOk;
+            return this.claimReward();    
         } else {
             return false;
         }

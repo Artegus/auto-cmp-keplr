@@ -5,7 +5,7 @@ import { KeplrChains } from "./KeplrChains";
 class KeplrStake {
 
     private page: Page;
-    private url: string = "https://wallet.keplr.app/#/";
+    private readonly URL_STAKE_PAGE: string = "https://wallet.keplr.app/#/";
 
     constructor(page: Page) {
         this.page = page;
@@ -16,7 +16,7 @@ class KeplrStake {
     }
 
     private async goTo(): Promise<void> {
-        await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
+        await this.page.goto(this.URL_STAKE_PAGE, { waitUntil: 'domcontentloaded' });
         await this.page.waitForTimeout(4000);
     }
 
