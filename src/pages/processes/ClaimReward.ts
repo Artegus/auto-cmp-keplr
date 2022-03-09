@@ -1,4 +1,4 @@
-import { ElementHandle, Page, Target } from 'puppeteer-core';
+import { BrowserEmittedEvents, ElementHandle, Page, Target } from 'puppeteer-core';
 import { Chain } from '../../models/Chain';
 
 class ClaimRewards {
@@ -10,6 +10,7 @@ class ClaimRewards {
     private readonly DATA_CONTAINER = '.main-content > .container-fluid > .row > .col-lg-12 > .card';
     private readonly REWARD_BUTTON = '.card-header > button';
     private readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
+    private readonly MIN_REWARD = 1e-6;
 
     constructor(page: Page, chain: Chain) {
         this.page = page;
@@ -27,7 +28,7 @@ class ClaimRewards {
         }
     }
 
-    public setRewardValue(rewardAvailable: boolean): void {
+    public setRewardAvailable(rewardAvailable: boolean): void {
         this.rewardAvailable = rewardAvailable;
     }
 
@@ -62,10 +63,10 @@ class ClaimRewards {
     
     private checkReward(buttonValue: string): void {
         const valueSplitted = buttonValue.split(' ');
-        const rewardAvailable = Number.parseFloat(valueSplitted[2]) > 0;
-        this.setRewardValue(rewardAvailable);
+        const rewardAvailable = Number.parseFloat(valueSplitted[2]) > this.MIN_REWARD;
+        this.setRewardAvailable(rewardAvailable);
     }
-
+    
     private async getApproveButton(extensionPopup: Page): Promise<ElementHandle<HTMLButtonElement> | null> {
         const btns = await extensionPopup.$$<HTMLButtonElement>(this.BUTTONS_EXTENSION_POPUP);
         let button: ElementHandle<HTMLButtonElement> | null = null;
@@ -88,7 +89,7 @@ class ClaimRewards {
         if (!rewardButton) return false;
 
         const [target,] = await Promise.all([
-            new Promise<Target | null>(resolve => this.page.browser().once('targetcreated', resolve)),
+            new Promise<Target | null>(resolve => this.page.browser().once(BrowserEmittedEvents.TargetCreated, resolve)),
             rewardButton.click(),
         ]);
 
