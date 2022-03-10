@@ -1,15 +1,10 @@
-import { Page } from "puppeteer-core";
 import { Chain } from "../models/Chain";
 import { KeplrChains } from "./KeplrChains";
+import { NavigablePage } from "./NavigablePage";
 
-class KeplrStake {
+class KeplrStake extends NavigablePage {
 
-    private page: Page;
     private readonly URL_STAKE_PAGE: string = "https://wallet.keplr.app/#/";
-
-    constructor(page: Page) {
-        this.page = page;
-    }
 
     public async startNavigation() {
         await this.goTo();
@@ -22,8 +17,8 @@ class KeplrStake {
 
     public async retrieveChains(): Promise<Chain[]> {
         const keplrChains = new KeplrChains(this.page);
-        await keplrChains.startScrape();
-        return keplrChains.getChains();
+        await keplrChains.startNavigation();
+        return keplrChains.getChains("all");
     }
 
 }

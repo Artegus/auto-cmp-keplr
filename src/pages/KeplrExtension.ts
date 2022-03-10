@@ -1,9 +1,9 @@
 import { Page } from 'puppeteer-core';
 import { config } from '../config';
+import { NavigablePage } from './NavigablePage';
 
-class KeplrExtension {
+class KeplrExtension extends NavigablePage {
     
-    private page: Page;
     private keplrExtensionId: string;
     private url: string;
 
@@ -11,18 +11,18 @@ class KeplrExtension {
     private readonly UNLOCK_BUTTON = 'button[type="submit"]';
 
     constructor(page: Page, keplrExtensionId: string) {
-        this.page = page;
+        super(page);
         this.keplrExtensionId = keplrExtensionId;
         this.url = this.configPath();
     }
-
-    private configPath(): string {
-        return `chrome-extension://${this.keplrExtensionId}/popup.html#/`;
-    }
-
+    
     public async startNavigation(): Promise<void> {
         await this.goTo();
         await this.connectToWallet();
+    }
+    
+    private configPath(): string {
+        return `chrome-extension://${this.keplrExtensionId}/popup.html#/`;
     }
 
     private async connectToWallet(): Promise<void> {

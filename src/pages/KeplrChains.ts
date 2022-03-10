@@ -1,48 +1,30 @@
-import { ElementHandle, Page } from "puppeteer-core";
+import { ElementHandle } from "puppeteer-core";
 import { Chain } from "../models/Chain";
+import { NavigablePage } from "./NavigablePage";
 
-class KeplrChains {
+type ChainType = "favorites" | "others" | "all";
 
-    private page: Page;
+class KeplrChains extends NavigablePage {
 
-    private chains: Chain[] | undefined;
+    private chains: Chain[] = [];
 
     private readonly ALL_CHAINS = "ul.navbar-nav:first-child > li.nav-item > div > ul";
     private readonly GROUP_CHAINS = "li > div > ul > li:first-child > a:not(.chain-item)";
 
-    private readonly ALL_CHAINS_LINKS = "ul.navbar-nav:first-child > li.nav-item > div > ul > li > div > ul > li:first-child > a";
-
-    constructor(page: Page) {
-        this.page = page;
+    public async startNavigation(): Promise<void> {
+        await this.getAllChains();
     }
 
     public setChains(...chains: Chain[]): void {
         this.chains = chains;
     }
 
-    public getFavoriteChains(): Chain[] {
-        if (this.chains) {
-            return this.chains.filter(chain => chain.isFavorite());
+    public getChains(type: ChainType): Chain[] {
+        switch(type) {
+            case "all": return this.chains;
+            case "favorites": return this.chains.filter(chain => chain.isFavorite());
+            case "others": return this.chains.filter(chain => !chain.isFavorite());
         }
-        return [];
-    }
-
-    public getOtherChains(): Chain[] {
-        if (this.chains) {
-            return this.chains.filter(chain => !chain.isFavorite());
-        }
-        return [];
-    }
-    
-    public getChains(): Chain[] {
-        if (this.chains != undefined) {
-            return this.chains;
-        }
-        return [];
-    }
-
-    public async startScrape(): Promise<void> {
-        await this.getAllChains();
     }
 
     private async getAllChains(): Promise<void> {

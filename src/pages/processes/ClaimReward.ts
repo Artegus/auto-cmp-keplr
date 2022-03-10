@@ -1,19 +1,19 @@
-import { BrowserEmittedEvents, ElementHandle, Page, Target } from 'puppeteer-core';
+import { ElementHandle, Page } from 'puppeteer-core';
 import { Chain } from '../../models/Chain';
+import { KeplrPopup } from '../KeplrPopup';
+import { Processablepage } from '../ProcessablePage';
 
-class ClaimRewards {
+class ClaimRewards extends Processablepage {
 
-    private page: Page;
     private chain: Chain;
     private rewardAvailable: boolean = false;
 
     private readonly DATA_CONTAINER = '.main-content > .container-fluid > .row > .col-lg-12 > .card';
     private readonly REWARD_BUTTON = '.card-header > button';
-    private readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
     private readonly MIN_REWARD = 1e-6;
 
     constructor(page: Page, chain: Chain) {
-        this.page = page;
+        super(page);
         this.chain = chain;
     }
 
@@ -66,47 +66,19 @@ class ClaimRewards {
         this.setRewardAvailable(rewardAvailable);
     }
     
-    private async getApproveButton(extensionPopup: Page): Promise<ElementHandle<HTMLButtonElement> | null> {
-        const btns = await extensionPopup.$$<HTMLButtonElement>(this.BUTTONS_EXTENSION_POPUP);
-        let button: ElementHandle<HTMLButtonElement> | null = null;
-        
-        for (let i = 0; i < btns.length && button == null; i++) {
-            const btnValue = await extensionPopup.evaluate((btn: HTMLButtonElement) => btn.textContent, btns[i]);
-            if (btnValue) {
-                if (btnValue.trim() === 'Approve') {
-                    button = btns[i];
-                }
-            }
-        }
-        
-        return button;
-    }
-
     private async claimReward(): Promise<boolean> {
         const rewardButton =  await this.getButtonClaimReward();
 
         if (!rewardButton) return false;
 
-        const [target,] = await Promise.all([
-            new Promise<Target | null>(resolve => this.page.browser().once(BrowserEmittedEvents.TargetCreated, resolve)),
-            rewardButton.click(),
-        ]);
-
-        if (!target) return false; 
-
-        const extensionPopup = await target.page();
-        if (!extensionPopup) return false;
-
-        await extensionPopup.waitForTimeout(4000);
-        await extensionPopup.bringToFront();
-        const btnApprove = await this.getApproveButton(extensionPopup);
-
-        if (btnApprove) {
-            await btnApprove.click();
+        try {
+            const keplrPopup = await KeplrPopup.openPopupByClikingButton(rewardButton, this.page);
+            await keplrPopup.approveTransaction();
             return true;
+        } catch (e) {
+            return false;
         }
-        
-        return false;
+      
     }
 
 }

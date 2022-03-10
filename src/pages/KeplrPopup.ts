@@ -8,9 +8,13 @@ class KeplrPopup extends AbstractPage {
     private readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
     private readonly TEXT_APPROVE_BUTTON = 'Approve';
 
+    protected constructor(page: Page) {
+        super(page);
+    }
+
     public async approveTransaction() {
         const approveButton = await this.getApproveButton();
-        approveButton.click();
+        await approveButton.click();
     }
 
     public static async openPopupByClikingButton(buttonElement: ElementHandle<HTMLButtonElement>, currentPage: Page): Promise<KeplrPopup> {
