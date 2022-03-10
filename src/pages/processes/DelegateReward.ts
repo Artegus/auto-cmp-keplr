@@ -1,22 +1,18 @@
-import { ElementHandle, Page } from 'puppeteer-core';
+import { ElementHandle } from 'puppeteer-core';
 import { IValidator, Validator } from '../../models/Validator';
 import { KeplrPopup } from '../KeplrPopup';
+import { Processablepage } from '../ProcessablePage';
 
-class DelegateReward {
+class DelegateReward extends Processablepage {
 
-    private page: Page;
     private validators: Validator[] = [];
 
     private readonly DATA_CONTAINER = '.main-content > .container-fluid > .row > .col-lg-12 > .card';
     private readonly TABLE_ROW_ELEMENTS = '.card-body > table > .list tr';
     private readonly MODAL_CONTENT = '.modal-content > div > div';
-    private readonly DELEGATE_BUTTON = 'button.btn.btn-primary';
+    private readonly DELEGATE_TEXT = 'Delegate';
 
-    constructor(page: Page) {
-        this.page = page;
-    }
-
-    public async start(): Promise<boolean> {
+    public async start() {
         let statusOk = false;
         await this.retrieveValidators();
         const validator = this.selectValidorWithLowestAmountStaked();
@@ -53,13 +49,10 @@ class DelegateReward {
         await this.clickOnManageValidator(validator.getName());
         await this.clickOnDelegate();
         await this.clickOnMaxAmountToDelegate();
-        const statusOk = await this.clickOnDelegateAndManagePopup();
-        
-        return statusOk;
+        return this.clickOnDelegateAndManagePopup();
     }
 
     async getModalContent(): Promise<ElementHandle<HTMLDivElement> | null> {
-        await this.page.waitForSelector(this.MODAL_CONTENT);
         return this.page.$<HTMLDivElement>(this.MODAL_CONTENT);
     }
 
@@ -77,20 +70,20 @@ class DelegateReward {
     private async clickOnDelegate() {
         const modalContent = await this.getModalContent();
         if (!modalContent) return;
-        
-        const delegateButton = await modalContent.$<HTMLButtonElement>(this.DELEGATE_BUTTON);
-        if (!delegateButton) return;
 
+        const delegateButton = await this.getDelegateButton(modalContent);
         await delegateButton.click();
-        await this.page.waitForTimeout(1000);
+    }
+
+    private async getDelegateButton(modalContent: ElementHandle<HTMLDivElement>): Promise<ElementHandle<HTMLButtonElement>> {
+        return this.elementQuerySelectorIncludeText<HTMLButtonElement>(modalContent, 'button', this.DELEGATE_TEXT);
     }
 
     private async clickOnDelegateAndManagePopup() {
         const modalContent = await this.getModalContent();
         if (!modalContent) return false;
-        
-        const delegateButton = await modalContent.$<HTMLButtonElement>(this.DELEGATE_BUTTON);
-        if (!delegateButton) return false;
+
+        const delegateButton = await this.getDelegateButton(modalContent);
 
         try {
             const keplrPopup = await KeplrPopup.openPopupByClikingButton(delegateButton, this.page);
@@ -109,6 +102,7 @@ class DelegateReward {
         const buttonMaxAmount = await modalContent.$('.form-group button');
         if (!buttonMaxAmount) return; 
         await buttonMaxAmount.click();
+        await this.page.waitForTimeout(1000);
     }
 
     private async getValidatorHTMLRowElement(validatorName: string): Promise<ElementHandle<HTMLTableRowElement> | null> {
