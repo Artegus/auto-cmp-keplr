@@ -44,8 +44,7 @@ class KeplrConfig {
     }
 
     private getKeplrExtensionPath() {
-        const keplrPath = FileSystemUtils.createPath(this.extensionsPath, this.keplrId);
-        return keplrPath;
+        return FileSystemUtils.createPath(this.extensionsPath, this.keplrId);
     }
     
     public async loadKeplrExtensionPath(): Promise<void> {
@@ -61,8 +60,7 @@ class KeplrConfig {
     
     private getExtensionsPath() {
         const dataDir: string = this.appContext.getObject<string>(AppContextStoreKeys.dataDir)!;
-        const extensionsPath = FileSystemUtils.createPath(dataDir, "Default", "Extensions");
-        return extensionsPath;
+        return FileSystemUtils.createPath(dataDir, "Default", "Extensions");
     }
 
     private async getKeplrId(): Promise<string> {
@@ -70,9 +68,8 @@ class KeplrConfig {
         const outputCommand = await CommandUtil.spawnAsync(lsExtPath);
 
         const dirs = outputCommand.split('\n').filter(dir => dir !== '');
-        const version = dirs[0];
 
-        return version;
+        return dirs[0];
     }
 
 }

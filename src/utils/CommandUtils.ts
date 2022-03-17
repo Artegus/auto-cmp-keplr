@@ -25,8 +25,12 @@ class CommandUtil {
             }
         }
 
-        return new Promise<string>((resolve, reject) => {
-            let res: string = ""
+        return new Promise<string>(CommandUtil.executeChildProcess(prc));
+    }
+
+    private static executeChildProcess(prc: ChildProcess): (resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: any) => void) => void {
+        return (resolve, reject) => {
+            let res: string = "";
             if (prc.stdout) {
                 prc.stdout.setEncoding('utf-8');
                 prc.stdout.on('data', (data: string) => res += data);
@@ -40,11 +44,10 @@ class CommandUtil {
                 } else {
                     reject();
                 }
-            })
+            });
 
-        });
+        };
     }
-
 }
 
 export { CommandUtil }
