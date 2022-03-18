@@ -63,7 +63,7 @@ class KeplrConfig {
         let keplrExtension = FileSystemUtils.createPath(this.paths.extensionWithVersion);
         
         if (!FileSystemUtils.checkIfExists(keplrExtension)) {
-            const keplrId = await this.getKeplrId();
+            const keplrId = await this.getKeplrVersion();
             keplrExtension = FileSystemUtils.createPath(this.paths.extension, keplrId)
         }
 
@@ -75,7 +75,7 @@ class KeplrConfig {
         return FileSystemUtils.createPath(dataDir, "Default", "Extensions");
     }
 
-    private async getKeplrId(): Promise<string> {
+    private async getKeplrVersion(): Promise<string> {
         const lsExtPath = new Command('ls', [this.paths.extension]);
         const outputCommand = await CommandUtil.spawnAsync(lsExtPath);
 
