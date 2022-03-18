@@ -1,4 +1,5 @@
 import { ElementHandle, Page } from 'puppeteer-core';
+import { RewardsAreNotAvailable } from '../../exceptions/RewardsAreNotAvailable';
 import { Chain } from '../../models/Chain';
 import { KeplrPopup } from '../KeplrPopup';
 import { Processablepage } from '../ProcessablePage';
@@ -22,7 +23,9 @@ class ClaimRewards extends Processablepage {
         await this.retrieveRewardValue();
         if (this.isRewardAvailable()) {
             await this.claimReward();    
-        } 
+        } else {
+            throw new RewardsAreNotAvailable(`Rewards are less than ${this.MIN_REWARD}`);
+        }
     }
 
     public setRewardAvailable(rewardAvailable: boolean): void {
