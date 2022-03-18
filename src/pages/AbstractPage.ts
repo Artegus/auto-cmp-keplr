@@ -17,27 +17,27 @@ abstract class AbstractPage {
         this.page = page;
     }
 
-    async pageQuerySelector<Type extends Element>(selector: string): Promise<ElementHandle<Type>> {
+    protected pageQuerySelector<Type extends Element>(selector: string): Promise<ElementHandle<Type>> {
         return this.querySelector(this.page, selector);
     }
     
-    async pageQuerySelectorAll<Type extends Element>(selector: string): Promise<ElementHandle<Type>[]> {
+    protected pageQuerySelectorAll<Type extends Element>(selector: string): Promise<ElementHandle<Type>[]> {
         return this.querySelectorAll<Type>(this.page, selector);
     }
 
-    async elementQuerySelector<Type extends Element>(elementReference: ElementHandle, selector: string): Promise<ElementHandle<Type>> {
+    protected elementQuerySelector<Type extends Element>(elementReference: ElementHandle, selector: string): Promise<ElementHandle<Type>> {
         return this.querySelector<Type>(elementReference, selector);
     }
 
-    async elementQuerySelectorAll<Type extends Element>(elementReference: ElementHandle, selector: string): Promise<ElementHandle<Type>[]> {
+    protected elementQuerySelectorAll<Type extends Element>(elementReference: ElementHandle, selector: string): Promise<ElementHandle<Type>[]> {
         return this.querySelectorAll<Type>(elementReference, selector);
     }
 
-    pageWaitForTimeout(milliseconds: number): Promise<void> {
+    protected pageWaitForTimeout(milliseconds: number): Promise<void> {
         return this.page.waitForTimeout(milliseconds);
     }
 
-    async querySelectorIncludeText<Type extends Element>({
+    protected async querySelectorIncludeText<Type extends Element>({
         element,
         selector,
         text,
