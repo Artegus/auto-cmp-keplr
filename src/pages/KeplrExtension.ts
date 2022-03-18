@@ -17,7 +17,7 @@ class KeplrExtension extends NavigablePage {
     }
     
     public async startNavigation(): Promise<void> {
-        await this.goTo();
+        await this.page.goto(this.url);
         await this.connectToWallet();
     }
     
@@ -28,10 +28,6 @@ class KeplrExtension extends NavigablePage {
     private async connectToWallet(): Promise<void> {
         await this.setPassword();
         await this.unlockWallet();
-    }
-
-    private async goTo(): Promise<void> {
-        this.page.goto(this.url);
     }
 
     private async setPassword(): Promise<void> {

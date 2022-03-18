@@ -3,7 +3,7 @@ import { AbstractPage } from "./AbstractPage";
 
 abstract class Processablepage extends AbstractPage implements Process {
 
-    abstract start(): Promise<boolean>;
+    abstract start(): Promise<void>;
 
 }
 

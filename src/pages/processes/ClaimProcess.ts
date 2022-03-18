@@ -21,12 +21,22 @@ class ClaimProcess {
 
     private async startFirstStep(chain: Chain): Promise<boolean> {
         const claimProcess = new ClaimRewards(this.page, chain)
-        return claimProcess.start();
+        try {
+            await claimProcess.start();
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
-    private startSecondStep(chain: Chain) {
+    private async startSecondStep(chain: Chain) {
         const delegateProcess = new DelegateReward(this.page);
-        return delegateProcess.start();
+        try {
+            await delegateProcess.start();
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
 }

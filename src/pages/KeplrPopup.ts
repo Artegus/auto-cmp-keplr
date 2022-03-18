@@ -1,6 +1,6 @@
 import { BrowserEmittedEvents, ElementHandle, Page, Target } from 'puppeteer-core';
-import { HTMLElementNotFound } from '../errors/HTMLElementNotFound';
-import { TargetCreatedException } from '../errors/TargetCreatedException';
+import { PageNotFound } from '../exceptions/PageNotFound';
+import { TargetCreatedException } from '../exceptions/TargetCreatedException';
 import { AbstractPage } from './AbstractPage';
 
 class KeplrPopup extends AbstractPage {
@@ -27,27 +27,23 @@ class KeplrPopup extends AbstractPage {
 
         const page = await target.page();
 
-        if(!page) throw new TargetCreatedException("Page not found");
+        if(!page) throw new PageNotFound("Page not found");
 
         return new KeplrPopup(page);
     }
 
     private async getApproveButton(): Promise<ElementHandle<HTMLButtonElement>> {
-        const btns = await this.page.$$<HTMLButtonElement>(this.BUTTONS_EXTENSION_POPUP);
-        let button: ElementHandle<HTMLButtonElement> | null = null;
-
-        for (let i = 0; i < btns.length && button == null; i++) {
-            const btnValue = await this.page.evaluate((btn: HTMLButtonElement) => btn.textContent, btns[i]);
-            if (btnValue) {
-                if (btnValue.trim() === this.TEXT_APPROVE_BUTTON) {
-                    button = btns[i];
-                }
-            }
+        function searchInnerTextButton(): (element: HTMLButtonElement, textToSeach: string) => boolean {
+            return (element: HTMLButtonElement, textToSeach: string) => {
+                return element.innerText === textToSeach;
+            };
         }
         
-        if (button == null) throw new HTMLElementNotFound("Approve Button not found in the extension popup page");
-
-        return button;
+        return this.querySelectorIncludeText<HTMLButtonElement>({
+            selector: this.BUTTONS_EXTENSION_POPUP, 
+            text: this.TEXT_APPROVE_BUTTON,
+            pageFuntion: searchInnerTextButton
+        });
     }
 
 }

@@ -28,12 +28,11 @@ class KeplrChains extends NavigablePage {
     }
 
     private async getAllChains(): Promise<void> {
-
-        const chainGroup = await this.page.$$<HTMLUListElement>(this.ALL_CHAINS);
-
-        const favoriteChains = await chainGroup[0].$$<HTMLLinkElement>(this.GROUP_CHAINS);
-        const otherChains = await chainGroup[1].$$<HTMLLinkElement>(this.GROUP_CHAINS);
-
+        const chainGroup = await this.pageQuerySelectorAll<HTMLUListElement>(this.ALL_CHAINS);
+        
+        const favoriteChains = await this.elementQuerySelectorAll<HTMLLinkElement>(chainGroup[0], this.GROUP_CHAINS);
+        const otherChains = await this.elementQuerySelectorAll<HTMLLinkElement>(chainGroup[1], this.GROUP_CHAINS);
+        
         const favChainsParsed = await this.parseChains(favoriteChains, true);
         const othChainsParsed = await this.parseChains(otherChains, false);
 
@@ -44,7 +43,7 @@ class KeplrChains extends NavigablePage {
         const chains: Chain[] = []; 
         
         for(const nodeElement of nodeElements) {
-            const href = await this.page.evaluate((link: HTMLLinkElement) => link.href, nodeElement);
+            const href = await this.page.evaluate<(link: HTMLLinkElement) => string>((link: HTMLLinkElement) => link.href, nodeElement);
             chains.push(new Chain(href, favorite))
         }
 

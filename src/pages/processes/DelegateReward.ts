@@ -13,22 +13,18 @@ class DelegateReward extends Processablepage {
     private readonly DELEGATE_TEXT = 'Delegate';
 
     public async start() {
-        let statusOk = false;
         await this.retrieveValidators();
         const validator = this.selectValidorWithLowestAmountStaked();
-        statusOk = await this.delegate(validator);
-
-        return statusOk;
+        await this.delegate(validator);
     }
 
     private async retrieveValidators(): Promise<void> {
         const validators = await this.getValidatorsHTMLRowElement();
-        if (!validators) return; 
-        
+
         for (const validator of validators) {
             const validatorData: IValidator = await this.page.evaluate((tableRowEl: HTMLTableRowElement) => {
                 const [name, amountStaked, pendingReward,] = tableRowEl.cells;
-                const processValue = (value: string) => Number.parseFloat(value.split(' ')[0])  
+                const processValue = (value: string) => Number.parseFloat(value.split(' ')[0])
                 return {
                     name: name.innerText,
                     amountStaked: processValue(amountStaked.innerText),
@@ -45,92 +41,84 @@ class DelegateReward extends Processablepage {
         return this.validators[0];
     }
 
-    private async delegate(validator: Validator): Promise<boolean> {
+    private async delegate(validator: Validator): Promise<void> {
         await this.clickOnManageValidator(validator.getName());
         await this.clickOnDelegate();
         await this.clickOnMaxAmountToDelegate();
         return this.clickOnDelegateAndManagePopup();
     }
 
-    async getModalContent(): Promise<ElementHandle<HTMLDivElement> | null> {
-        return this.page.$<HTMLDivElement>(this.MODAL_CONTENT);
+    async getModalContent(): Promise<ElementHandle<HTMLDivElement>> {
+        return this.pageQuerySelector<HTMLDivElement>(this.MODAL_CONTENT);
     }
 
-    async clickOnManageValidator(validatorName: string) {
+    async clickOnManageValidator(validatorName: string): Promise<void> {
         const validatorHTMLRowElement = await this.getValidatorHTMLRowElement(validatorName);
-        if (!validatorHTMLRowElement) return;
-        
-        const manageButton = await validatorHTMLRowElement.$<HTMLButtonElement>('button');
-        if (!manageButton) return;
-
+        const manageButton = await this.elementQuerySelector<HTMLButtonElement>(validatorHTMLRowElement, 'button');
         await manageButton.click();
-        await this.page.waitForTimeout(1000);
+        await this.pageWaitForTimeout(1000);
     }
 
     private async clickOnDelegate() {
         const modalContent = await this.getModalContent();
-        if (!modalContent) return;
-
         const delegateButton = await this.getDelegateButton(modalContent);
         await delegateButton.click();
     }
 
     private async getDelegateButton(modalContent: ElementHandle<HTMLDivElement>): Promise<ElementHandle<HTMLButtonElement>> {
-        return this.elementQuerySelectorIncludeText<HTMLButtonElement>(modalContent, 'button', this.DELEGATE_TEXT);
+        return this.querySelectorIncludeText<HTMLButtonElement>({
+            element: modalContent, 
+            selector: 'button', 
+            text: this.DELEGATE_TEXT,
+            pageFuntion: searchInnerTextButton
+        });
+
+        function searchInnerTextButton(): (element: HTMLButtonElement, textToSeach: string) => boolean {
+            return (element: HTMLButtonElement, textToSeach: string) => {
+                return element.innerText === textToSeach;
+            };
+        }
+
     }
 
-    private async clickOnDelegateAndManagePopup() {
+    private async clickOnDelegateAndManagePopup(): Promise<void> {
         const modalContent = await this.getModalContent();
-        if (!modalContent) return false;
-
         const delegateButton = await this.getDelegateButton(modalContent);
-
-        try {
-            const keplrPopup = await KeplrPopup.openPopupByClikingButton(delegateButton, this.page);
-            await keplrPopup.approveTransaction();
-            return true;
-        } catch (e) {
-            // Log this error
-            return false;
-        }
+        const keplrPopup = await KeplrPopup.openPopupByClikingButton(delegateButton, this.page);
+        await keplrPopup.approveTransaction();
     }
 
-    private async clickOnMaxAmountToDelegate() {
+    private async clickOnMaxAmountToDelegate(): Promise<void> {
         const modalContent = await this.getModalContent();
-        if (!modalContent) return;
-        
-        const buttonMaxAmount = await modalContent.$('.form-group button');
-        if (!buttonMaxAmount) return; 
+        const buttonMaxAmount = await this.elementQuerySelector(modalContent, '.form-group button');
         await buttonMaxAmount.click();
-        await this.page.waitForTimeout(1000);
+        await this.pageWaitForTimeout(1000);
     }
 
-    private async getValidatorHTMLRowElement(validatorName: string): Promise<ElementHandle<HTMLTableRowElement> | null> {
-        const validators = await this.getValidatorsHTMLRowElement();
-        if (!validators) return null;
-        let indexValidator = 0;
-        let found = false;
-
-        while(found == false || indexValidator < validators.length) {
-            found = await this.page.evaluate((tableRowEl: HTMLTableRowElement, validatorName: string) => {
-                const [name] = tableRowEl.cells;
-                if (name.innerText === validatorName) {
-                    return true;
-                }
-                return false;
-            }, validators[indexValidator], validatorName);
-            
-            indexValidator++;
+    private async getValidatorHTMLRowElement(validatorName: string): Promise<ElementHandle<HTMLTableRowElement>> {
+        function searchInnerTextIntoHTMLTableCell(): (element: HTMLTableRowElement, textToSeach: string) => boolean {
+            return (element: HTMLTableRowElement, textToSeach: string) => {
+                const [name] = element.cells;
+                return name.innerText === textToSeach;
+            };
         }
-        return validators[indexValidator - 1];
+
+        const containerElement = await this.pageQuerySelector<HTMLDivElement>(this.DATA_CONTAINER);
+
+        const validator = await this.querySelectorIncludeText({
+            element: containerElement, 
+            selector: this.TABLE_ROW_ELEMENTS, 
+            text: validatorName,
+            pageFuntion: searchInnerTextIntoHTMLTableCell
+        });
+
+        return validator;
+
     }
 
-    private async getValidatorsHTMLRowElement(): Promise<ElementHandle<HTMLTableRowElement>[] | null> {
-        const dataContainer = await this.page.$<HTMLDivElement>(this.DATA_CONTAINER);
-        if (!dataContainer) return null;
-
-        const validatorsHTMLRowElement = await dataContainer.$$<HTMLTableRowElement>(this.TABLE_ROW_ELEMENTS);
-        return validatorsHTMLRowElement;
+    private async getValidatorsHTMLRowElement(): Promise<ElementHandle<HTMLTableRowElement>[]> {
+        const containerElement = await this.pageQuerySelector<HTMLDivElement>(this.DATA_CONTAINER);
+        return this.elementQuerySelectorAll<HTMLTableRowElement>(containerElement, this.TABLE_ROW_ELEMENTS);
     }
 
     private orderValidatorsAsc() {

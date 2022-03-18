@@ -1,7 +1,14 @@
 import { ElementHandle, Page } from "puppeteer-core";
-import { HTMLElementNotFound } from "../errors/HTMLElementNotFound";
+import { HTMLElementNotFound } from "../exceptions/HTMLElementNotFound";
 
 type HTMLElements = keyof HTMLElementTagNameMap;
+
+type QuerySelectorByTextOptions<Type extends Element> = {
+    element?: ElementHandle | Page; 
+    selector: string; 
+    text: string;
+    pageFuntion: () => (elementHandle: Type, textToFound: string) => boolean;
+}
 
 abstract class AbstractPage {
     protected page: Page;
@@ -18,10 +25,6 @@ abstract class AbstractPage {
         return this.querySelectorAll<Type>(this.page, selector);
     }
 
-    async pageQuerySelectorIncludeText<Type extends Element>(selector: string, text: string): Promise<ElementHandle<Type>> {
-        return this.querySelectorIncludeText<Type>(this.page, selector, text);
-    }
-    
     async elementQuerySelector<Type extends Element>(elementReference: ElementHandle, selector: string): Promise<ElementHandle<Type>> {
         return this.querySelector<Type>(elementReference, selector);
     }
@@ -30,20 +33,23 @@ abstract class AbstractPage {
         return this.querySelectorAll<Type>(elementReference, selector);
     }
 
-    async elementQuerySelectorIncludeText<Type extends Element>(elementReference: ElementHandle, selector: string, text: string): Promise<ElementHandle<Type>>{
-        return this.querySelectorIncludeText<Type>(elementReference, selector, text);
+    pageWaitForTimeout(milliseconds: number): Promise<void> {
+        return this.page.waitForTimeout(milliseconds);
     }
 
-    private async querySelectorIncludeText<Type extends Element>(element: ElementHandle | Page, selector: string, text: string): Promise<ElementHandle<Type>> {
-        const possibleElements = await this.querySelectorAll<Type>(element, selector);
+    async querySelectorIncludeText<Type extends Element>({
+        element,
+        selector,
+        text,
+        pageFuntion
+    }: QuerySelectorByTextOptions<Type>): Promise<ElementHandle<Type>> {
+
+        const possibleElements = await this.querySelectorAll<Type>(element ?? this.page, selector);
         let found: boolean = false;
         let index: number = 0;
 
-        while(found === false || index < possibleElements.length) {
-            found = await this.page.evaluate((btn: HTMLButtonElement, textToFound: string) => {
-                return btn.innerText === textToFound;
-            }, possibleElements[index], text);
-            
+        while(found === false && index < possibleElements.length) {
+            found = await this.page.evaluate(pageFuntion(), possibleElements[index], text);
             index++;
         }
 
@@ -60,7 +66,7 @@ abstract class AbstractPage {
 
     private async querySelectorAll<Type extends Element>(elementReference: ElementHandle | Page, selector: string): Promise<ElementHandle<Type>[]> {
         const elements: ElementHandle<Type>[] = await elementReference.$$(selector);
-        if (elements === null) throw new HTMLElementNotFound('');
+        if (elements === null) throw new HTMLElementNotFound(`The ${selector} selector couldn't find the element`);
         return elements;
     }
 

@@ -17,14 +17,12 @@ class ClaimRewards extends Processablepage {
         this.chain = chain;
     }
 
-    public async start(): Promise<boolean> {
+    public async start(): Promise<void> {
         await this.goTo();
         await this.retrieveRewardValue();
         if (this.isRewardAvailable()) {
-            return this.claimReward();    
-        } else {
-            return false;
-        }
+            await this.claimReward();    
+        } 
     }
 
     public setRewardAvailable(rewardAvailable: boolean): void {
@@ -39,19 +37,13 @@ class ClaimRewards extends Processablepage {
         await this.page.goto(this.chain.getUrl(), { waitUntil: 'load' });
     }
 
-    private async getButtonClaimReward(): Promise<ElementHandle<HTMLButtonElement> | null> {
-        const dataContainer = await this.page.$<HTMLDivElement>(this.DATA_CONTAINER);
-        if (!dataContainer) return null; 
-        
-        const buttonClaimReward = await dataContainer.$<HTMLButtonElement>(this.REWARD_BUTTON);
-        if (!buttonClaimReward) return null;
-        
-        return buttonClaimReward;
+    private async getButtonClaimReward(): Promise<ElementHandle<HTMLButtonElement>> {
+        const dataContainer = await this.pageQuerySelector<HTMLDivElement>(this.DATA_CONTAINER)
+        return this.elementQuerySelector<HTMLButtonElement>(dataContainer, this.REWARD_BUTTON);
     }
 
     async retrieveRewardValue() : Promise<void> {
         const rewardButton = await this.getButtonClaimReward();
-        if (!rewardButton) return;
 
         const buttonValue = await this.page.evaluate((btn: HTMLButtonElement) => btn.textContent, rewardButton);
         
@@ -66,19 +58,10 @@ class ClaimRewards extends Processablepage {
         this.setRewardAvailable(rewardAvailable);
     }
     
-    private async claimReward(): Promise<boolean> {
+    private async claimReward(): Promise<void> {
         const rewardButton =  await this.getButtonClaimReward();
-
-        if (!rewardButton) return false;
-
-        try {
-            const keplrPopup = await KeplrPopup.openPopupByClikingButton(rewardButton, this.page);
-            await keplrPopup.approveTransaction();
-            return true;
-        } catch (e) {
-            return false;
-        }
-      
+        const keplrPopup = await KeplrPopup.openPopupByClikingButton(rewardButton, this.page);
+        await keplrPopup.approveTransaction();
     }
 
 }

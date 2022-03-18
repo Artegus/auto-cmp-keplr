@@ -1,5 +1,5 @@
 interface Process {
-    start: () => Promise<boolean>
+    start: () => Promise<void>
 }
 
 export { Process }
