@@ -17,6 +17,20 @@ class Chain {
         return this.favorite;
     }
 
+    public getName(): string {
+        const regexChainName = /(?<=\/#\/)(.*)(?=\/stake)/gm;
+        const matches = this.getUrl().match(regexChainName);
+        let chainName: string;
+        
+        if (matches) {
+            chainName = matches[0];
+        } else {
+            chainName ="";
+        }
+
+        return chainName;
+    }
+
 }
 
 export { Chain }
