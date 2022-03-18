@@ -1,5 +1,4 @@
 import { Context } from "./Context";
-import { AppContextStoreKeys } from "./AppContextStoreKeys";
 import { FileSystemUtils } from "../utils/FileSystemUtils";
 import { config } from "../config";
 
@@ -7,12 +6,15 @@ class AppContext extends Context {
 
     private homeDir: string;
     private os: NodeJS.Platform;
+    private userDataDir: string;
+    private executablePath: string;
 
     constructor() {
         super();
         this.homeDir = FileSystemUtils.getHomeDir();
         this.os = FileSystemUtils.getOsPlatform();
-        this.loadConfig();
+        this.userDataDir = this.setDefaultUserDataDir();
+        this.executablePath = config.executablePath;
     }
 
     public getOs() {
@@ -23,9 +25,17 @@ class AppContext extends Context {
         return this.homeDir;
     }
 
-    private setDefaultUserDataDir(): void {
-        let path: string[] = [this.homeDir];
+    public getUserDataDir() {
+        return this.userDataDir;
+    }
 
+    public getExecutablePath() {
+        return this.executablePath;
+    }
+
+    private setDefaultUserDataDir(): string {
+        let path: string[] = [this.homeDir];
+        //TODO: Add config to others os
         switch(this.os) {
             case "linux":
                 path.push(".config/");
@@ -36,18 +46,7 @@ class AppContext extends Context {
 
         path.push(config.browser);
 
-        const defaultDataDir = FileSystemUtils.createPath(...path);
-
-        this.setObject(AppContextStoreKeys.dataDir, defaultDataDir);
-    }
-
-    private setExecutablePath(): void {
-        this.setObject(AppContextStoreKeys.executablePath, config.executablePath);
-    }
-
-    private loadConfig(): void {
-        this.setDefaultUserDataDir();
-        this.setExecutablePath();
+        return FileSystemUtils.createPath(...path);
     }
 
 }

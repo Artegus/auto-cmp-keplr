@@ -3,7 +3,7 @@ import { config } from '../config';
 import { AppContext } from "../context/AppContext";
 import { CommandUtil } from "../utils/CommandUtils";
 import { Command } from "../models/Command";
-import { AppContextStoreKeys } from "../context/AppContextStoreKeys";
+import { Chain } from "../models/Chain";
 
 type KeplrPaths = {
     extension: string;
@@ -15,6 +15,7 @@ class KeplrConfig {
     private extensionsPath: string;
     private paths: KeplrPaths;
     private keplrId: string = config.keplrExtension.id;
+    private defaultChains: Chain[] = [];
 
     private appContext: AppContext;
 
@@ -22,6 +23,7 @@ class KeplrConfig {
         this.appContext = ctx;
         this.extensionsPath = this.getExtensionsPath();
         this.paths = this.loadPaths();
+        this.loadDefaultChains();
     }
 
     public getKeplrExtensionId(): string {
@@ -36,11 +38,21 @@ class KeplrConfig {
         return this.paths;
     }
 
+    public getDefaultChains(): Chain[] {
+        return this.defaultChains;
+    }
+
     private loadPaths() {
         return {
             extension: this.getKeplrExtensionPath(),
             extensionWithVersion: this.getKeplrExtensionPath() + config.keplrExtension.version
         };
+    }
+
+    private loadDefaultChains(): void {
+        this.defaultChains = config.defaultChains.split(',')
+            .filter(chain => chain !== '')
+            .map(chain => new Chain(`https://wallet.keplr.app/#/${chain.trim().toLowerCase()}/stake`, true));
     }
 
     private getKeplrExtensionPath() {
@@ -59,7 +71,7 @@ class KeplrConfig {
     }
     
     private getExtensionsPath() {
-        const dataDir: string = this.appContext.getObject<string>(AppContextStoreKeys.dataDir)!;
+        const dataDir: string = this.appContext.getUserDataDir();
         return FileSystemUtils.createPath(dataDir, "Default", "Extensions");
     }
 

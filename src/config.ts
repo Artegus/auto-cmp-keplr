@@ -7,7 +7,8 @@ type ConfigApp = {
     keplrExtension: {
         id: string;
         version: string;
-    }
+    },
+    defaultChains: string;
 }
 
 const config: ConfigApp = {
@@ -17,7 +18,8 @@ const config: ConfigApp = {
     keplrExtension: {
         id: process.env.EXTENSION_ID || '',
         version: process.env.EXTENSION_VERSION || ''
-    }
+    },
+    defaultChains: process.env.DEFAULT_CHAINS || ''
 }
 
 export { config, ConfigApp }
