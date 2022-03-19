@@ -1,4 +1,3 @@
-import { AppContextStoreKeys } from "./AppContextStoreKeys";
 
 class Context {
 
@@ -12,11 +11,27 @@ class Context {
         return this.store;
     }
 
-    public getObject<T>(key: AppContextStoreKeys): T | undefined {
+    public getObject<T>(key: string): T {
         try {
             return this.store.get(key) as T;
         } catch (e) {
-            return undefined;
+            throw new Error(''); // TODO: Create error
+        }
+    }
+
+    public getStringValue(key: string): string {
+        try {
+            return this.store.get(key) as string;
+        } catch (e) {
+            return "";
+        }
+    }
+
+    public getBooleanValue(key: string): boolean {
+        try {
+            return this.store.get(key) as boolean
+        } catch (e) {
+            return false;
         }
     }
 
