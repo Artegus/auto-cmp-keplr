@@ -4,17 +4,24 @@ import { config } from "../config";
 
 class AppContext extends Context {
 
+    private static instance: AppContext;
+
     private homeDir: string;
     private os: NodeJS.Platform;
     private userDataDir: string;
     private executablePath: string;
 
-    constructor() {
+    private constructor() {
         super();
         this.homeDir = FileSystemUtils.getHomeDir();
         this.os = FileSystemUtils.getOsPlatform();
         this.userDataDir = this.setDefaultUserDataDir();
         this.executablePath = config.executablePath;
+    }
+
+    public static getInstance(): AppContext {
+        if (this.instance === undefined) this.instance = new AppContext();
+        return this.instance;
     }
 
     public getOs() {
