@@ -5,7 +5,7 @@ import { AbstractPage } from './AbstractPage';
 
 class KeplrPopup extends AbstractPage {
 
-    private readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
+    private static readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
     private readonly TEXT_APPROVE_BUTTON = 'Approve';
 
     protected constructor(page: Page) {
@@ -28,7 +28,7 @@ class KeplrPopup extends AbstractPage {
         const page = await target.page();
 
         if(!page) throw new PageNotFound("Page not found");
-
+        await page.waitForSelector(KeplrPopup.BUTTONS_EXTENSION_POPUP);
         return new KeplrPopup(page);
     }
 
@@ -40,7 +40,7 @@ class KeplrPopup extends AbstractPage {
         }
         
         return this.querySelectorIncludeText<HTMLButtonElement>({
-            selector: this.BUTTONS_EXTENSION_POPUP, 
+            selector: KeplrPopup.BUTTONS_EXTENSION_POPUP, 
             text: this.TEXT_APPROVE_BUTTON,
             pageFuntion: searchInnerTextButton
         });
