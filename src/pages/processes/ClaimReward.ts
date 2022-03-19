@@ -64,7 +64,8 @@ class ClaimRewards extends Processablepage {
     private async claimReward(): Promise<void> {
         const rewardButton =  await this.getButtonClaimReward();
         const keplrPopup = await KeplrPopup.openPopupByClikingButton(rewardButton, this.page);
-        await keplrPopup.approveTransaction();
+        await keplrPopup.approveTransaction(); 
+        await this.page.waitForNetworkIdle(); //FIXME: Wait for update balance
     }
 
 }
