@@ -1,8 +1,9 @@
 import { Page } from 'puppeteer-core';
 import { config } from '../config';
 import { NavigablePage } from './NavigablePage';
+import { Processablepage } from './ProcessablePage';
 
-class KeplrExtension extends NavigablePage {
+class KeplrExtension extends NavigablePage implements Processablepage {
     
     private keplrExtensionId: string;
     private url: string;
@@ -15,6 +16,10 @@ class KeplrExtension extends NavigablePage {
         this.keplrExtensionId = keplrExtensionId;
         this.url = this.configPath();
     }
+
+    start(): Promise<void> {
+        return this.startNavigation();
+    }
     
     public async startNavigation(): Promise<void> {
         await this.page.goto(this.url);
@@ -22,7 +27,7 @@ class KeplrExtension extends NavigablePage {
     }
     
     private configPath(): string {
-        return `chrome-extension://${this.keplrExtensionId}/popup.html#/`;
+        return `chrome-extension://${this.keplrExtensionId}/popup.html#/`; // TODO: ???
     }
 
     private async connectToWallet(): Promise<void> {
