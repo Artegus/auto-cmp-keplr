@@ -6,6 +6,7 @@ import { AbstractPage } from './AbstractPage';
 class KeplrPopup extends AbstractPage {
 
     private static readonly BUTTONS_EXTENSION_POPUP = '.btn-primary';
+    private readonly BUTTONS_FEE_OPTIONS = ".btn-group button";
     private readonly TEXT_APPROVE_BUTTON = 'Approve';
 
     protected constructor(page: Page) {
@@ -14,6 +15,7 @@ class KeplrPopup extends AbstractPage {
 
     public async approveTransaction() {
         const approveButton = await this.getApproveButton();
+        await this.selectFeeOption();
         await approveButton.click();
     }
 
@@ -44,6 +46,27 @@ class KeplrPopup extends AbstractPage {
             text: this.TEXT_APPROVE_BUTTON,
             pageFuntion: searchInnerTextButton
         });
+    }
+
+    private async selectFeeOption (): Promise<void> {
+        const feeOptionButton = await this.getFeeOptionButton();
+        await feeOptionButton.click();
+    }
+
+    private async getFeeOptionButton(): Promise<ElementHandle<HTMLButtonElement>> {
+        const feeOption = "low"; // Config value low, average, high
+
+        function searchFeeButton() : (element: HTMLButtonElement, textToSeach: string) => boolean {
+            return (element: HTMLButtonElement, textToSearch: string) => {
+                return element.innerText === textToSearch;
+            }
+        }
+
+        return this.querySelectorIncludeText({
+            selector: this.BUTTONS_FEE_OPTIONS,
+            text: feeOption,
+            pageFuntion: searchFeeButton
+        })
     }
 
 }
